@@ -1,15 +1,14 @@
 import json
 from Functions import *
-#import Functions
 
 dataSource = "../Data/Zara/output.json"
+cleanDataSource = "../Data/Zara/clean_output.json"
 
-f = open(dataSource)
-data = json.load(f)
+zaraProducts = json.load(open(dataSource))
 
 def displayData():
     num = 0
-    for product in data:
+    for product in zaraProducts:
         num += 1
         print("ID: " + str(num))    
         print("Name: " + product["name"])
@@ -31,6 +30,12 @@ def displayData():
         except:
             color = ""
         print("Color: " + color)
+
+        images = []
+        for img in product["images"]:
+            images.append(img)
+
+        print(images)
         
         print("Price: " + product["price"])
         print("SKU: " + product["sku"])
@@ -39,20 +44,81 @@ def displayData():
 
 def getCategories():
     categories = []
-    for product in data:
+    for product in zaraProducts:
         category = product["category"]
         if(not itemInList(categories, category)):
             categories.append(category)
 
-    print(categories)
+    return categories
 
 def getSubCategories():
     subCategories = []
-    for product in data:
+    for product in zaraProducts:
         for cat in product["sub_category"].split(" | "):
             if(not itemInList(subCategories, cat)):
                 subCategories.append(cat)
 
-    print(subCategories)
+    return subCategories
 
-getSubCategories()
+def getProductSubCategories(subCategories):
+    lstSubCategories = []
+    for category in subCategories.split(" | "):
+        if(category != ""):
+            lstSubCategories.append(category)
+
+    return lstSubCategories
+
+def getProductColors(colors):
+    color = colors.split(" | ")
+    color = color[0].split("Colour ")
+    try:
+        color = color[1]
+    except:
+        color = ""
+
+    return color
+
+def getProductImages(images):
+    lstImages = []
+    for img in images:
+        lstImages.append(img)
+
+    return lstImages    
+
+def cleanData():
+    products = []
+    jsonFile = open(cleanDataSource, "w")
+
+    num = 0
+    for product in zaraProducts:
+        num += 1
+        name = product["name"]
+        description = product["description"]
+        category = product["category"]
+        subCategories = getProductSubCategories(product["sub_category"])
+        color = getProductColors(product["color"])
+        images = getProductImages(product["images"])
+        price = product["price"]
+        sku = product["sku"]
+        url = product["url"]
+
+        dictionary = {
+            "name": name, 
+            "description": description, 
+            "category": category, 
+            "subCategories": subCategories,
+            "color": color,
+            "images": images,
+            "price": price,
+            "sku": sku,
+            "url": url
+        }
+        products.append(dictionary)
+
+    jsonString = json.dumps(products)
+    jsonFile.write(jsonString)
+    jsonFile.close()
+    print("Total products: " + str(num))
+
+
+cleanData()
